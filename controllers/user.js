@@ -1,4 +1,5 @@
 const gravatar = require('gravatar');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const validateRegisterInput = require('../validation/register');
@@ -11,48 +12,49 @@ exports.register = (req, res, next) => {
 
     if (!isValid) {
         return res.status(400).json(errors);
+    } else {
+        User.findOne({
+            email: req.body.email
+        }).then(user => {
+            if (user) {
+                return res.status(400).json({
+                    email: 'Email already exists'
+                });
+            } else {
+                const avatar = gravatar.url(req.body.email, {
+                    s: '200',
+                    r: 'pg',
+                    d: 'mm'
+                });
+                bcrypt.genSalt(10, (err, salt) => {
+                    if (err) {
+                        console.log('There was an error', err)
+                    } else {
+                        bcrypt.hash(req.body.password, salt, (err, hash) => {
+                            if (err) {
+                                console.log('There was an error', err)
+                            } else {
+                                const newUser = new User({
+                                    _id: new mongoose.Types.ObjectId(),
+                                    firstname: req.body.firstname,
+                                    lastname: req.body.lastname,
+                                    birthday: req.body.birthday,
+                                    avatar,
+                                    email: req.body.email,
+                                    password: hash,
+                                    phone: req.body.phone,
+                                    address: req.body.address
+                                })
+                                newUser.save().then(user => {
+                                    res.status(201).json(user)
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
     }
-    User.findOne({
-        email: req.body.email
-    }).then(user => {
-        if (user) {
-            return res.status(400).json({
-                email: 'Email already exists'
-            });
-        } else {
-            const avatar = gravatar.url(req.body.email, {
-                s: '200',
-                r: 'pg',
-                d: 'mm'
-            });
-            const newUser = new User({
-                firstname: req.body.firstname,
-                lastname: req.body.lastname,
-                avatar: avatar,
-                birthday: req.body.birthday,
-                password: req.body.password,
-                phone: req.body.phone,
-                address: req.body.address
-            })
-
-            bcrypt.genSalt(10, (err, salt) => {
-                if (err) {
-                    console.log('There was an error', err)
-                } else {
-                    bcrypt.hash(newUser.password, salt, (err, hash) => {
-                        if (err) {
-                            console.log('There was an error', err)
-                        } else {
-                            newUser.password = hash;
-                            newUser.save().then(user => {
-                                res.status(201).json(user)
-                            })
-                        }
-                    })
-                }
-            })
-        }
-    })
 }
 
 exports.login = (req, res, next) => {
@@ -80,7 +82,7 @@ exports.login = (req, res, next) => {
                             avatar: user.avatar
                         }
                         jwt.sign(payload, 'secret', {
-                            expiresIn: 3600
+                            expiresIn: 60 * 30
                         }, (err, token) => {
                             if (err) console.error('There is some error in token', err);
                             else {
@@ -104,6 +106,10 @@ exports.authenticate = (req, res, next) => {
         id: req.user._id,
         firstname: req.user.firstname,
         lastname: req.user.lastname,
-        email: req.user.email
+        email: req.user.email,
+        avatar: req.user.avatar,
+        birthday: req.user.birthday,
+        phone: req.user.phone,
+        address: req.user.address
     })
 }
