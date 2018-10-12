@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const config = require('./db');
 const users = require('./routes/user');
+const mails = require('./routes/mail');
 
 mongoose.connect(config.DB, { useCreateIndex: true, useNewUrlParser: true }).then(
     () => { console.log('Database is connected') },
@@ -39,6 +40,7 @@ app.get('/', function (req, res) {
 });
 
 app.use('/api/users', users);
+app.use('/api/mails', mails);
 
 const PORT = process.env.PORT || 3001;
 

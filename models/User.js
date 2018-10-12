@@ -14,7 +14,8 @@ const UserSchema = new mongoose.Schema({
     },
     password: { type: String, required: true },
     phone: { type: String },
-    address: { type: String }
+    address: { type: String },
+    mail: { type: mongoose.Schema.Types.ObjectId, ref: 'Mail' }
 });
 
 const User = mongoose.model('users', UserSchema);
