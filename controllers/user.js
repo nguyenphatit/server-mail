@@ -113,3 +113,14 @@ exports.authenticate = (req, res, next) => {
         address: req.user.address
     })
 }
+
+exports.getUserById = (req, res, next) => {
+    const _id = req.params.id
+    User.findById({ _id })
+        .then(user => {
+            if (user) {
+                res.status(200).json(user)
+            }
+            return res.status(404).json({message: 'Not found'})
+        })
+}
