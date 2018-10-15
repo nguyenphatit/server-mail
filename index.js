@@ -14,6 +14,8 @@ mongoose.connect(config.DB, { useCreateIndex: true, useNewUrlParser: true }).the
 const app = express();
 app.use(passport.initialize());
 require('./passport')(passport);
+app.set('views', './views')
+app.set('view engine', 'pug')
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -34,11 +36,15 @@ app.use((req, res, next) => {
     next()
 })
 
+// VIEW
+app.get('/', (req, res) => {
+    res.render('index', { title: 'Hey', message: 'Hello there!' })
+})
 
-app.get('/', function (req, res) {
+// API
+app.get('/api', function (req, res) {
     res.send('hello');
 });
-
 app.use('/api/users', users);
 app.use('/api/mails', mails);
 
