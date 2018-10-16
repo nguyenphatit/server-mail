@@ -3,17 +3,8 @@ const isEmpty = require('./is-empty');
 
 module.exports = validateMailInput = data => {
     let errors = {};
-    data.sender = !isEmpty(data.sender) ? data.sender : '';
     data.receiver = !isEmpty(data.receiver) ? data.receiver : '';
     data.content = !isEmpty(data.content) ? data.content : '';
-
-    if (!Validator.isEmail(data.sender)) {
-        errors.email = 'Email is invalid';
-    }
-
-    if (Validator.isEmpty(data.sender)) {
-        errors.email = 'Email is required';
-    }
 
     if (!Validator.isEmail(data.receiver)) {
         errors.email = 'Email is invalid';

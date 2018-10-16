@@ -10,39 +10,28 @@ exports.sendmail = (req, res, next) => {
         return res.status(400).json(errors);
     } else {
         User.findOne({
-            email: req.body.sender
-        }).then(sender => {
-            if (sender) {
-                const _idSender = sender._id
-                User.findOne({
-                    email: req.body.receiver
-                }).then(receiver => {
-                    if (receiver) {
-                        const _idReceiver = receiver._id
-                        const newMail = new Mail({
-                            _id: new mongoose.Types.ObjectId(),
-                            sender: _idSender,
-                            userSender: sender,
-                            receiver: _idReceiver,
-                            userReceiver: receiver,
-                            title: req.body.title,
-                            date: new Date(),
-                            content: req.body.content,
-                            read: false,
-                            trash: false,
-                        })
-                        newMail.save().then(mail => {
-                            res.status(201).json(mail);
-                        })
-                    } else {
-                        res.status(400).json({
-                            message: 'Receiver\'s email not found'
-                        })
-                    }
+            email: req.body.receiver
+        }).then(receiver => {
+            if (receiver) {
+                const _idReceiver = receiver._id
+                const newMail = new Mail({
+                    _id: new mongoose.Types.ObjectId(),
+                    sender: req.user._id,
+                    userSender: req.user,
+                    receiver: _idReceiver,
+                    userReceiver: receiver,
+                    title: req.body.title,
+                    date: new Date(),
+                    content: req.body.content,
+                    read: false,
+                    trash: false,
+                })
+                newMail.save().then(mail => {
+                    res.status(201).json(mail);
                 })
             } else {
                 res.status(400).json({
-                    message: 'Sender\'s email not found'
+                    message: 'Receiver\'s email not found'
                 })
             }
         })
@@ -74,20 +63,6 @@ exports.getAllMailSent = (req, res, next) => {
         })
 }
 
-exports.getMailSent = (req, res, next) => {
-    const _id = req.params.id;
-    const sender = req.user._id;
-    Mail.find({ _id, sender })
-        .then(mail => {
-            if (mail) {
-                res.status(200).json(mail)
-            } else {
-                return res.status(404).json({ message: 'No Sent' })
-            }
-        })
-
-}
-
 exports.getAllMailInbox = (req, res, next) => {
     const _id = req.user._id;
     User.findOne({ _id })
@@ -112,23 +87,9 @@ exports.getAllMailInbox = (req, res, next) => {
         })
 }
 
-exports.getMailInbox = (req, res, next) => {
-    const _id = req.params.id;
-    const receiver = req.user._id;
-    Mail.find({ _id, receiver })
-        .then(mail => {
-            if (mail) {
-                res.status(200).json(mail)
-            } else {
-                return res.status(404).json({ message: 'Not found' })
-            }
-        })
-
-}
-
 exports.getAllMailTrash = (req, res, next) => {
     const _id = req.user._id;
-    User.findOne({ _id })
+    User.find({ _id })
         .then(user => {
             if (!user) {
                 return res.status(404).json({ errors: 'Email not found' })
@@ -138,34 +99,48 @@ exports.getAllMailTrash = (req, res, next) => {
                     if (mails) {
                         const resMail = [];
                         mails.map(mail => {
-                            if (!mail.trash) {
+                            if (mail.trash) {
                                 resMail.push(mail)
                             }
                         })
                         res.status(200).json(resMail)
                     } else {
-                        res.status(200).json({ message: 'No Trash' })
+                        res.status(200).json({ message: 'No Inbox' })
                     }
                 })
         })
-
 }
 
-exports.changeStatusMail = (req, res, next) => {
-    const { _id } = req.params;
-
+exports.getMailById = (req, res, next) => {
+    const _id = req.params.id
     Mail.findById({ _id })
+        .then(mail => {
+            if (mail) {
+                res.status(200).json(mail)
+            } else {
+                return res.status(404).json({ errors: 'Not found' })
+            }
+        })
+}
+
+exports.deleteRestoreMail = (req, res, next) => {
+    const _id = req.params.id
+    Mail.findByIdAndUpdate({ _id })
         .then(mail => {
             if (mail) {
                 if (mail.trash) {
                     mail.trash = false;
-                    res.status(200).json({ message: 'Restored successfully' })
+                    mail.save().then(mail => {
+                        res.status(200).json(mail);
+                    })
                 } else {
                     mail.trash = true;
-                    res.status(200).json({ message: 'Removed successfully' })
+                    mail.save().then(mail => {
+                        res.status(200).json(mail);
+                    })
                 }
             } else {
-                res.status(404).json({ errors: 'Not found' })
+                return res.status(404).json({ errors: 'Not found' })
             }
         })
 }
