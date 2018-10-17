@@ -9,4 +9,5 @@ router.get('/inbox', passport.authenticate('jwt', {session: false}), mail.getAll
 router.get('/trash', passport.authenticate('jwt', {session: false}), mail.getAllMailTrash)
 router.get('/:id', passport.authenticate('jwt', {session: false}), mail.getMailById)
 router.get('/delete-restore/:id', passport.authenticate('jwt', {session: false}), mail.deleteRestoreMail)
+router.get('/read/:id', passport.authenticate('jwt', {session: false}), mail.readMail)
 module.exports = router;
