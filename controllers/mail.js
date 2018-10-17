@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const validateMailInput = require('../validation/mail');
-
 const Mail = require('./../models/Mail');
 const User = require('./../models/User');
 
@@ -138,6 +137,25 @@ exports.deleteRestoreMail = (req, res, next) => {
                     mail.save().then(mail => {
                         res.status(200).json(mail);
                     })
+                }
+            } else {
+                return res.status(404).json({ errors: 'Not found' })
+            }
+        })
+}
+
+exports.readMail = (req, res, next) => {
+    const _id = req.params.id
+    Mail.findByIdAndUpdate({ _id })
+        .then(mail => {
+            if (mail) {
+                if (!mail.read) {
+                    mail.read = true;
+                    mail.save().then(mail => {
+                        res.status(200).json(mail);
+                    })
+                } else {
+                    res.status(200).json({message: 'Mail has read'});
                 }
             } else {
                 return res.status(404).json({ errors: 'Not found' })

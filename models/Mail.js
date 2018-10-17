@@ -9,6 +9,7 @@ const MailSchema = new mongoose.Schema({
     title: { type: String },
     date: { type: Date },
     content: { type: String },
+    read: { type: Boolean },
     trash: { type: Boolean }
 });
 
