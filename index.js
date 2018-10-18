@@ -36,13 +36,8 @@ app.use((req, res, next) => {
     next()
 })
 
-// VIEW
-app.get('/', (req, res) => {
-    res.render('index', { title: 'Hey', message: 'Hello there!' })
-})
-
 // API
-app.get('/api', function (req, res) {
+app.get('/', (req, res, next) => {
     res.send('hello');
 });
 app.use('/api/users', users);
